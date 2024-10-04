@@ -41,7 +41,7 @@ public class ProductsService {
         }
 
 
-        Product product = new Product( body.title(), body.subtitle(), Double.parseDouble(body.price()), Integer.parseInt(body.quantity()));
+        Product product = new Product( body.title(), body.subtitle(), Double.parseDouble(body.price()), Integer.parseInt(body.stock()));
 
         return this.productRepository.save(product);
     }
@@ -53,7 +53,7 @@ public class ProductsService {
     public Product findByIdAndUpdate(UUID productId, ProductDTO updatedProduct) {
         Product found = findById(productId);
 
-        found.setQuantity(Integer.parseInt(updatedProduct.quantity()));
+        found.setQuantity(Integer.parseInt(updatedProduct.stock()));
         found.setTitle(updatedProduct.title());
         found.setSubtitle(updatedProduct.subtitle());
         found.setPrice(Double.parseDouble(updatedProduct.price()));

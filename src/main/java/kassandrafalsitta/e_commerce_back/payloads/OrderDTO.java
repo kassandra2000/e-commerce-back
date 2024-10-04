@@ -1,7 +1,11 @@
 package kassandrafalsitta.e_commerce_back.payloads;
 
 import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+
+import java.util.List;
+import java.util.UUID;
 
 public record OrderDTO(
         @NotEmpty(message = "La data di aggiunta è obbligatoria")
@@ -15,7 +19,8 @@ public record OrderDTO(
         String total,
         @NotEmpty(message = "L'UUID dell' utente è obbligatorio")
         @Size(min = 36, max = 36, message = "L'UUID dell' utente  deve avere 36 caratteri")
-        String userId
-
+        String userId,
+        @NotNull(message = "La lista di UUID dei prodotti è obbligatoria")
+        List<String> productId
 ) {
 }

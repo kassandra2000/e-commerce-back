@@ -14,8 +14,8 @@ public record ProductDTO(
         @NotEmpty(message = "Il prezzo è obbligatorio")
         @Size(min = 1, max = 40, message = "Il prezzo deve essere compreso tra 3 e 40 caratteri")
         String price,
-        @NotEmpty(message = "La quantità è obbligatorio")
-        @Size(min = 1, max = 40, message = "La quantità deve essere compreso tra 3 e 40 caratteri")
-        String quantity
+        @NotEmpty(message = "La quantità in stock è obbligatorio")
+        @Size(min = 1, max = 40, message = "La quantità in stock deve essere compreso tra 1 e 40 caratteri")
+        String stock
 ) {
 }
