@@ -1,10 +1,13 @@
 package kassandrafalsitta.e_commerce_back.controllers;
 
 
+import kassandrafalsitta.e_commerce_back.entities.Order;
 import kassandrafalsitta.e_commerce_back.entities.User;
 
+import kassandrafalsitta.e_commerce_back.exceptions.NotFoundException;
 import kassandrafalsitta.e_commerce_back.payloads.*;
 
+import kassandrafalsitta.e_commerce_back.services.OrdersService;
 import kassandrafalsitta.e_commerce_back.services.UsersService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -22,6 +25,8 @@ import java.util.UUID;
 public class UsersController {
     @Autowired
     private UsersService usersService;
+ @Autowired
+    private OrdersService ordersService;
 
 
 
@@ -69,6 +74,41 @@ public class UsersController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteProfile(@AuthenticationPrincipal User currentAuthenticatedUser) {
         this.usersService.findByIdAndDelete(currentAuthenticatedUser.getId());
+    }
+
+
+    //me/order
+
+
+    @GetMapping("/me/order")
+    public List<Order> getProfileOrder(@AuthenticationPrincipal User currentAuthenticatedUser) {
+        return this.ordersService.findByUser(currentAuthenticatedUser);
+    }
+
+    @GetMapping("/me/order/{orderId}")
+    public Order getProfileOrderById(@AuthenticationPrincipal User currentAuthenticatedUser,@PathVariable UUID orderId) {
+        List<Order> orderList = this.ordersService.findByUser(currentAuthenticatedUser);
+        Order userOrder = orderList.stream().filter(order -> order.getId().equals(orderId)).findFirst()
+                .orElseThrow(() -> new NotFoundException(orderId));
+        return ordersService.findById(userOrder.getId());
+    }
+
+
+    @PutMapping("/me/order/{orderId}")
+    public Order updateProfileOrder(@AuthenticationPrincipal User currentAuthenticatedUser, @PathVariable UUID orderId, @RequestBody OrderDTO body) {
+        List<Order> orderList = this.ordersService.findByUser(currentAuthenticatedUser);
+        Order userOrder = orderList.stream().filter(order -> order.getId().equals(orderId)).findFirst()
+                .orElseThrow(() -> new NotFoundException(orderId));
+        return this.ordersService.findByIdAndUpdate(userOrder.getId(), body);
+    }
+
+    @DeleteMapping("/me/order/{orderId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteProfileOrder(@AuthenticationPrincipal User currentAuthenticatedUser, @PathVariable UUID orderId) {
+        List<Order> orderList = this.ordersService.findByUser(currentAuthenticatedUser);
+        Order userOrder = orderList.stream().filter(order -> order.getId().equals(orderId)).findFirst()
+                .orElseThrow(() -> new NotFoundException(orderId));
+        this.ordersService.findByIdAndDelete(userOrder.getId());
     }
 
 

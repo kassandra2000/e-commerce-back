@@ -2,15 +2,14 @@ package kassandrafalsitta.e_commerce_back.exceptions;
 
 import kassandrafalsitta.e_commerce_back.payloads.ErrorDTO;
 import org.springframework.http.HttpStatus;
-
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.authorization.AuthorizationDeniedException;
-
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.time.LocalDateTime;
 
@@ -43,6 +42,12 @@ public class ExceptionsHandler {
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST) //400
     public ErrorDTO handleUncorrectPath(HttpRequestMethodNotSupportedException ex, WebRequest request) {
+        return new ErrorDTO("devi inserire un path corretto", LocalDateTime.now());
+    }
+
+    @ExceptionHandler(NoResourceFoundException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST) //400
+    public ErrorDTO handleUncorrectPath(NoResourceFoundException ex, WebRequest request) {
         return new ErrorDTO("devi inserire un path corretto", LocalDateTime.now());
     }
 
