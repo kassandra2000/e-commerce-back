@@ -20,6 +20,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -143,8 +144,16 @@ public class OrdersService {
         return this.orderRepository.save(found);
     }
 
-    public void findByIdAndDelete(UUID productId) {
-        this.orderRepository.delete(this.findById(productId));
+    public void findByIdAndDelete(UUID orderId) {
+        Optional<Order> orderOptional = orderRepository.findById(orderId);
+        if (orderOptional.isPresent()) {
+            Order order = orderOptional.get();
+            order.clearProductList();
+            orderRepository.save(order);
+            orderRepository.delete(order);
+        } else {
+            throw new NotFoundException("Ordine non trovato");
+        }
     }
 
 

@@ -46,4 +46,9 @@ public class Order {
         this.user = user;
         this.productList = productList;
     }
+
+    //metodi
+    public void clearProductList() {
+        this.productList.clear();
+    }
 }

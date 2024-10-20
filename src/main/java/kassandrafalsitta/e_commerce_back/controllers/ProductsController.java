@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -25,13 +26,15 @@ public class ProductsController {
     private ProductsService productService;
 
     @GetMapping
+    @PreAuthorize("hasAuthority('ADMIN')")
     public Page<Product> getAllProducts(@RequestParam(defaultValue = "0") int page,
-                                        @RequestParam(defaultValue = "10") int size,
+                                        @RequestParam(defaultValue = "30") int size,
                                         @RequestParam(defaultValue = "id") String sortBy) {
         return this.productService.findAll(page, size, sortBy);
     }
 
     @PostMapping
+    @PreAuthorize("hasAuthority('ADMIN')")
     @ResponseStatus(HttpStatus.CREATED)
     public ProductRespDTO createProduct(@RequestBody @Validated ProductDTO body, BindingResult validationResult) {
         if (validationResult.hasErrors()) {
@@ -45,26 +48,27 @@ public class ProductsController {
     }
 
     @GetMapping("/{productId}")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public Product getProductById(@PathVariable UUID productId) {
         return productService.findById(productId);
     }
 
     @PutMapping("/{productId}")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public Product findProductByIdAndUpdate(@PathVariable UUID productId, @RequestBody @Validated ProductDTO body) {
         return productService.findByIdAndUpdate(productId, body);
     }
 
     @DeleteMapping("/{productId}")
+    @PreAuthorize("hasAuthority('ADMIN')")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void findProductByIdAndDelete(@PathVariable UUID productId) {
         productService.findByIdAndDelete(productId);
     }
 
     @PostMapping("/{productId}/img")
-    public Product uploadCover(@PathVariable UUID productId, @RequestParam(name = "img", required = false) MultipartFile image) throws IOException {
-        if (image == null || image.isEmpty()) {
-            throw new BadRequestException("Ci sono stati errori nel payload dell'immagine ");
-        }
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public Product uploadCover(@PathVariable UUID productId, @RequestParam("img") MultipartFile image) throws IOException {
         return this.productService.uploadImage(productId, image);
     }
 }

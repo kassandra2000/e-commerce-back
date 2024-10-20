@@ -8,6 +8,7 @@ import kassandrafalsitta.e_commerce_back.exceptions.NotFoundException;
 import kassandrafalsitta.e_commerce_back.payloads.ProductDTO;
 import kassandrafalsitta.e_commerce_back.repositories.ProductRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -53,7 +54,7 @@ public class ProductsService {
     public Product findByIdAndUpdate(UUID productId, ProductDTO updatedProduct) {
         Product found = findById(productId);
 
-        found.setQuantity(Integer.parseInt(updatedProduct.stock()));
+        found.setStock(Integer.parseInt(updatedProduct.stock()));
         found.setTitle(updatedProduct.title());
         found.setSubtitle(updatedProduct.subtitle());
         found.setPrice(Double.parseDouble(updatedProduct.price()));
@@ -63,7 +64,11 @@ public class ProductsService {
     }
 
     public void findByIdAndDelete(UUID productId) {
-        this.productRepository.delete(this.findById(productId));
+        try {
+            this.productRepository.delete(this.findById(productId));
+        } catch (DataIntegrityViolationException e) {
+            throw new BadRequestException("Attenzione, il prodotto è presente in uno o più ordini.");
+        }
     }
 
     public Product uploadImage(UUID productId, MultipartFile file) throws IOException {

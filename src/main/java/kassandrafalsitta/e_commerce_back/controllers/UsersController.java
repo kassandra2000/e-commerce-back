@@ -33,7 +33,7 @@ public class UsersController {
     @GetMapping
     @PreAuthorize("hasAuthority('ADMIN')")
     public Page<User> getAllUsers(@RequestParam(defaultValue = "0") int page,
-                                  @RequestParam(defaultValue = "10") int size,
+                                  @RequestParam(defaultValue = "30") int size,
                                   @RequestParam(defaultValue = "id") String sortBy) {
         return this.usersService.findAll(page, size, sortBy);
     }
@@ -48,6 +48,11 @@ public class UsersController {
     @PreAuthorize("hasAuthority('ADMIN')")
     public User findUserByIdAndUpdate(@PathVariable UUID userId, @RequestBody @Validated UserDTO body) {
         return usersService.findByIdAndUpdate(userId, body);
+    }
+    @PutMapping("/{userId}/admin")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public User findUserByIdAndUpdateRole(@PathVariable UUID userId) {
+        return usersService.findByIdAndUpdateRole(userId);
     }
 
 

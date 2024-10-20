@@ -1,11 +1,10 @@
 package kassandrafalsitta.e_commerce_back.services;
 
 import kassandrafalsitta.e_commerce_back.entities.User;
-
+import kassandrafalsitta.e_commerce_back.enums.Role;
 import kassandrafalsitta.e_commerce_back.exceptions.BadRequestException;
 import kassandrafalsitta.e_commerce_back.exceptions.NotFoundException;
 import kassandrafalsitta.e_commerce_back.payloads.UserDTO;
-
 import kassandrafalsitta.e_commerce_back.repositories.UsersRepository;
 import kassandrafalsitta.e_commerce_back.tools.MailgunSender;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,6 +59,12 @@ public class UsersService {
         found.setSurname(updatedUser.surname());
         found.setEmail(updatedUser.email());
         found.setPassword(updatedUser.password());
+        return this.usersRepository.save(found);
+    }
+
+    public User findByIdAndUpdateRole(UUID employeeId) {
+        User found = findById(employeeId);
+        found.setRole(Role.ADMIN);
         return this.usersRepository.save(found);
     }
 
