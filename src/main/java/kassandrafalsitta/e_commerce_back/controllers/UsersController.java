@@ -54,7 +54,11 @@ public class UsersController {
     public User findUserByIdAndUpdateRole(@PathVariable UUID userId) {
         return usersService.findByIdAndUpdateRole(userId);
     }
-
+    @PutMapping("/{userId}/productList")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public User findUserByIdAndUpdateProductList(@PathVariable UUID userId, @RequestBody @Validated UserProductListDTO body) {
+        return usersService.findByIdAndUpdateProductList(userId, body);
+    }
 
     @DeleteMapping("/{userId}")
     @PreAuthorize("hasAuthority('ADMIN')")

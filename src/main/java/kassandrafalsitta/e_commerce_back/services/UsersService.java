@@ -1,10 +1,13 @@
 package kassandrafalsitta.e_commerce_back.services;
 
+import kassandrafalsitta.e_commerce_back.entities.Product;
 import kassandrafalsitta.e_commerce_back.entities.User;
 import kassandrafalsitta.e_commerce_back.enums.Role;
 import kassandrafalsitta.e_commerce_back.exceptions.BadRequestException;
 import kassandrafalsitta.e_commerce_back.exceptions.NotFoundException;
 import kassandrafalsitta.e_commerce_back.payloads.UserDTO;
+import kassandrafalsitta.e_commerce_back.payloads.UserProductListDTO;
+import kassandrafalsitta.e_commerce_back.repositories.ProductRepository;
 import kassandrafalsitta.e_commerce_back.repositories.UsersRepository;
 import kassandrafalsitta.e_commerce_back.tools.MailgunSender;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,12 +18,16 @@ import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Service
 public class UsersService {
     @Autowired
     private UsersRepository usersRepository;
+    @Autowired
+    private ProductRepository productRepository;
     @Autowired
     private PasswordEncoder bcrypt;
 
@@ -65,6 +72,21 @@ public class UsersService {
     public User findByIdAndUpdateRole(UUID employeeId) {
         User found = findById(employeeId);
         found.setRole(Role.ADMIN);
+        return this.usersRepository.save(found);
+    }
+
+    public User findByIdAndUpdateProductList(UUID employeeId, UserProductListDTO updatedProductListUser) {
+        User found = findById(employeeId);
+        List<UUID> productsId = new ArrayList<>();
+        for (String id :updatedProductListUser.productId()) {
+            try {
+                productsId.add(UUID.fromString(id));
+            } catch (NumberFormatException e) {
+                throw new BadRequestException("L'UUID del prodotto" + id + " non è corretto");
+            }
+        }
+        List<Product> products = productRepository.findAllById(productsId);
+        found.setProductList(products);
         return this.usersRepository.save(found);
     }
 

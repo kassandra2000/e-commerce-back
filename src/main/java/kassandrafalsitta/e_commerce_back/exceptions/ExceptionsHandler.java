@@ -4,7 +4,9 @@ import kassandrafalsitta.e_commerce_back.payloads.ErrorDTO;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.authorization.AuthorizationDeniedException;
+import org.springframework.validation.FieldError;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -12,6 +14,8 @@ import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @RestControllerAdvice
 public class ExceptionsHandler {
@@ -38,6 +42,17 @@ public class ExceptionsHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST) //400
     public ErrorDTO handleMissingBody(HttpMessageNotReadableException ex, WebRequest request) {
         return new ErrorDTO("devi inserire un body", LocalDateTime.now());
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST) // 400
+    public ErrorDTO handleValidationExceptions(MethodArgumentNotValidException ex, WebRequest request) {
+        List<String> errors = new ArrayList<>();
+        for (FieldError error : ex.getBindingResult().getFieldErrors()) {
+            errors.add( error.getDefaultMessage());
+            break;
+        }
+        return new ErrorDTO(errors.getFirst().toString(),LocalDateTime.now());
     }
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST) //400

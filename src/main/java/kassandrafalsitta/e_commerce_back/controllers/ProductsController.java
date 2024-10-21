@@ -26,7 +26,6 @@ public class ProductsController {
     private ProductsService productService;
 
     @GetMapping
-    @PreAuthorize("hasAuthority('ADMIN')")
     public Page<Product> getAllProducts(@RequestParam(defaultValue = "0") int page,
                                         @RequestParam(defaultValue = "30") int size,
                                         @RequestParam(defaultValue = "id") String sortBy) {
