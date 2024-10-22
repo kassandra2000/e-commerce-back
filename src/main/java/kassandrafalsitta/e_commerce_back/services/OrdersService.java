@@ -1,5 +1,9 @@
 package kassandrafalsitta.e_commerce_back.services;
 
+import com.stripe.exception.StripeException;
+import com.stripe.model.checkout.Session;
+import com.stripe.param.checkout.SessionCreateParams;
+import kassandrafalsitta.e_commerce_back.entities.CheckoutResponse;
 import kassandrafalsitta.e_commerce_back.entities.Order;
 import kassandrafalsitta.e_commerce_back.entities.Product;
 import kassandrafalsitta.e_commerce_back.entities.User;
@@ -23,6 +27,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+
 @Service
 public class OrdersService {
     @Autowired
@@ -44,49 +49,54 @@ public class OrdersService {
     }
 
     public Order saveOrder(OrderDTO body) {
-
-        LocalDate dateAdded = null;
+        LocalDate dateAdded;
         try {
             dateAdded = LocalDate.parse(body.dateAdded());
         } catch (DateTimeParseException e) {
             throw new BadRequestException("Il formato della data non è valido: " + body.dateAdded() + " inserire nel seguente formato: AAAA-MM-GG");
         }
 
-
-        UUID userId = null;
+        UUID userId;
         try {
             userId = UUID.fromString(body.userId());
-        } catch (NumberFormatException e) {
+        } catch (IllegalArgumentException e) {
             throw new BadRequestException("L'UUID del dipendente non è corretto");
         }
-        Status status = null;
+
+        Status status;
         try {
             status = Status.valueOf(body.status().toUpperCase());
-        } catch (Exception e) {
+        } catch (IllegalArgumentException e) {
             throw new BadRequestException("Lo stato non è corretto");
         }
 
         User user = usersService.findById(userId);
+        user.getProductList().clear();
 
         List<UUID> productsId = new ArrayList<>();
         for (String id : body.productId()) {
             try {
                 productsId.add(UUID.fromString(id));
-            } catch (NumberFormatException e) {
-                throw new BadRequestException("L'UUID del prodotto" + id + " non è corretto");
+            } catch (IllegalArgumentException e) {
+                throw new BadRequestException("L'UUID del prodotto " + id + " non è corretto");
             }
         }
-        List<Product> products = productRepository.findAllById(productsId);
-        double total = 0;
-        for (Product product : products) {
-            total += product.getPrice() * product.getQuantity();
 
+        List<Product> products = productRepository.findAllById(productsId);
+        if (products.isEmpty()) {
+            throw new BadRequestException("Nessun prodotto trovato con gli ID forniti");
         }
 
-        Order order = new Order(dateAdded, status, total, user, products);
+        products.forEach(product -> product.setQuantity(1));
 
+        Order order = new Order(dateAdded, status, user, products);
+        order.setTotal(Double.parseDouble(body.total()));
         return this.orderRepository.save(order);
+
+
     }
+
+
 
     public Order findById(UUID productId) {
         return this.orderRepository.findById(productId).orElseThrow(() -> new NotFoundException(productId));
@@ -117,6 +127,7 @@ public class OrdersService {
         }
 
         User user = usersService.findById(userId);
+
         found.setUser(user);
 
         found.setStatus(status);
@@ -143,6 +154,7 @@ public class OrdersService {
 
         return this.orderRepository.save(found);
     }
+
 
     public void findByIdAndDelete(UUID orderId) {
         Optional<Order> orderOptional = orderRepository.findById(orderId);

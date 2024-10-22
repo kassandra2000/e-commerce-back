@@ -3,6 +3,7 @@ package kassandrafalsitta.e_commerce_back.controllers;
 import kassandrafalsitta.e_commerce_back.entities.Product;
 import kassandrafalsitta.e_commerce_back.exceptions.BadRequestException;
 import kassandrafalsitta.e_commerce_back.payloads.ProductDTO;
+import kassandrafalsitta.e_commerce_back.payloads.ProductQuantityDTO;
 import kassandrafalsitta.e_commerce_back.payloads.ProductRespDTO;
 import kassandrafalsitta.e_commerce_back.services.ProductsService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,7 +33,7 @@ public class ProductsController {
         return this.productService.findAll(page, size, sortBy);
     }
 
-    @PostMapping
+    @PostMapping("/add")
     @PreAuthorize("hasAuthority('ADMIN')")
     @ResponseStatus(HttpStatus.CREATED)
     public ProductRespDTO createProduct(@RequestBody @Validated ProductDTO body, BindingResult validationResult) {
@@ -57,6 +58,13 @@ public class ProductsController {
     public Product findProductByIdAndUpdate(@PathVariable UUID productId, @RequestBody @Validated ProductDTO body) {
         return productService.findByIdAndUpdate(productId, body);
     }
+
+    @PutMapping("/{productId}/quantity")
+
+    public Product findProductByIdAndUpdateQuantity(@PathVariable UUID productId, @RequestBody @Validated ProductQuantityDTO body) {
+        return productService.findByIdAndUpdateQuantity(productId, body);
+    }
+
 
     @DeleteMapping("/{productId}")
     @PreAuthorize("hasAuthority('ADMIN')")

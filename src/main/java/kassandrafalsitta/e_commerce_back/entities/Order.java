@@ -38,11 +38,10 @@ public class Order {
     private List<Product> productList;
 
     //aggiungere pagamento
-    public Order(LocalDate dateAdded, Status status, double total, User user, List<Product> productList) {
+    public Order(LocalDate dateAdded, Status status, User user, List<Product> productList) {
         this.dateAdded = dateAdded;
         this.status = status;
         this.dateModified = LocalDate.now();
-        this.total = total;
         this.user = user;
         this.productList = productList;
     }

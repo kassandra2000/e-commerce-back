@@ -1,9 +1,11 @@
 package kassandrafalsitta.e_commerce_back.payloads;
 
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Size;
 
 public record ProductDTO(
+
 
         @NotEmpty(message = "Il titolo è obbligatorio")
         @Size(min = 3, max = 40, message = "Il titolo deve essere compreso tra 3 e 40 caratteri")
@@ -16,6 +18,8 @@ public record ProductDTO(
         String price,
         @NotEmpty(message = "La quantità in stock è obbligatorio")
         @Size(min = 1, max = 40, message = "La quantità in stock deve essere compreso tra 1 e 40 caratteri")
-        String stock
+        String stock,
+        @Min(1)
+        int quantity
 ) {
 }

@@ -2,23 +2,29 @@ package kassandrafalsitta.e_commerce_back.controllers;
 
 
 import kassandrafalsitta.e_commerce_back.entities.Order;
+import kassandrafalsitta.e_commerce_back.entities.Product;
 import kassandrafalsitta.e_commerce_back.entities.User;
-
+import kassandrafalsitta.e_commerce_back.exceptions.BadRequestException;
 import kassandrafalsitta.e_commerce_back.exceptions.NotFoundException;
-import kassandrafalsitta.e_commerce_back.payloads.*;
-
+import kassandrafalsitta.e_commerce_back.payloads.AddProductDTO;
+import kassandrafalsitta.e_commerce_back.payloads.OrderDTO;
+import kassandrafalsitta.e_commerce_back.payloads.UserDTO;
+import kassandrafalsitta.e_commerce_back.payloads.UserProductListDTO;
 import kassandrafalsitta.e_commerce_back.services.OrdersService;
 import kassandrafalsitta.e_commerce_back.services.UsersService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/users")
@@ -88,6 +94,35 @@ public class UsersController {
 
     //me/order
 
+    @PostMapping("/me/addCart")
+    @ResponseStatus(HttpStatus.CREATED)
+    public Product addProductToCart(@AuthenticationPrincipal User currentAuthenticatedUser, @RequestBody @Validated AddProductDTO body, BindingResult validationResult) {
+        if (validationResult.hasErrors()) {
+            String messages = validationResult.getAllErrors().stream()
+                    .map(DefaultMessageSourceResolvable::getDefaultMessage)
+                    .collect(Collectors.joining(". "));
+            throw new BadRequestException("Ci sono stati errori nel payload. " + messages);
+        } else {
+            UUID userId = currentAuthenticatedUser.getId();
+            return this.usersService.addProductToCart(userId, body);
+        }
+    }
+
+    @DeleteMapping("/me/removeCart/{productId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void removeProductFromCart(@AuthenticationPrincipal User currentAuthenticatedUser,
+                                      @PathVariable UUID productId) {
+        UUID userId = currentAuthenticatedUser.getId();
+        this.usersService.removeProductFromCart(userId, productId);
+    }
+
+    @DeleteMapping("/me/removeAllQuantity/{productId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void removeAllQuantityProductFromCart(@AuthenticationPrincipal User currentAuthenticatedUser,
+                                                 @PathVariable UUID productId) {
+        UUID userId = currentAuthenticatedUser.getId();
+        this.usersService.removeAllQuantityProductFromCart(userId, productId);
+    }
 
     @GetMapping("/me/order")
     public List<Order> getProfileOrder(@AuthenticationPrincipal User currentAuthenticatedUser) {

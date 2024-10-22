@@ -32,7 +32,6 @@ public class OrdersController {
     }
 
     @PostMapping
-    @PreAuthorize("hasAuthority('ADMIN')")
     @ResponseStatus(HttpStatus.CREATED)
     public OrderRespDTO createOrder(@RequestBody @Validated OrderDTO body, BindingResult validationResult) {
         if (validationResult.hasErrors()) {

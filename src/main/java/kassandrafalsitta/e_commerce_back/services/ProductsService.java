@@ -6,6 +6,7 @@ import kassandrafalsitta.e_commerce_back.entities.Product;
 import kassandrafalsitta.e_commerce_back.exceptions.BadRequestException;
 import kassandrafalsitta.e_commerce_back.exceptions.NotFoundException;
 import kassandrafalsitta.e_commerce_back.payloads.ProductDTO;
+import kassandrafalsitta.e_commerce_back.payloads.ProductQuantityDTO;
 import kassandrafalsitta.e_commerce_back.repositories.ProductRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -59,6 +60,12 @@ public class ProductsService {
         found.setSubtitle(updatedProduct.subtitle());
         found.setPrice(Double.parseDouble(updatedProduct.price()));
 
+
+        return this.productRepository.save(found);
+    }
+    public Product findByIdAndUpdateQuantity(UUID productId, ProductQuantityDTO updatedProduct) {
+        Product found = findById(productId);
+        found.setQuantity(updatedProduct.quantity());
 
         return this.productRepository.save(found);
     }
