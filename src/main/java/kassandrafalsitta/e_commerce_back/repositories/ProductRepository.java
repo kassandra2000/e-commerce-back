@@ -12,4 +12,6 @@ public interface ProductRepository extends JpaRepository<Product, UUID> {
     Optional<Product> findByTitleAndSubtitle(String title, String subtitle);
 
     List<Product> findAllById(UUID productId);
+    List<Product> findBySubtitleContainingIgnoreCase(String subtitle);
+
 }

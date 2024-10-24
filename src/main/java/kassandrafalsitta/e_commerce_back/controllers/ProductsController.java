@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -77,5 +78,11 @@ public class ProductsController {
     @PreAuthorize("hasAuthority('ADMIN')")
     public Product uploadCover(@PathVariable UUID productId, @RequestParam("img") MultipartFile image) throws IOException {
         return this.productService.uploadImage(productId, image);
+    }
+
+    //query
+    @GetMapping("/bySubtitle")
+    public List<Product> findProductsBySubtitle(@RequestParam String subtitle) {
+        return productService.findProductsBySubtitle(subtitle);
     }
 }
