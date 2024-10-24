@@ -91,6 +91,12 @@ public class UsersController {
         this.usersService.findByIdAndDelete(currentAuthenticatedUser.getId());
     }
 
+    @DeleteMapping("/me/allCart")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteAllFromCart(@AuthenticationPrincipal User currentAuthenticatedUser) {
+        this.usersService.removeAllFromCart(currentAuthenticatedUser.getId());
+    }
+
 
     //me/order
 

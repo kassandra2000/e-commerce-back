@@ -1,8 +1,11 @@
 package kassandrafalsitta.e_commerce_back.entities;
 
+import lombok.Getter;
+
+@Getter
 public class CheckoutResponse {
-    private String sessionId;
-    private Order order; // Tipo di savedOrder
+    private final String sessionId;
+    private final Order order;
 
     public CheckoutResponse(String sessionId, Order order) {
         this.sessionId = sessionId;
@@ -10,12 +13,5 @@ public class CheckoutResponse {
     }
 
 
-    public String getSessionId() {
-        return sessionId;
-    }
-
-    public Order getOrder() {
-        return order;
-    }
 }
 

@@ -1,14 +1,20 @@
 package kassandrafalsitta.e_commerce_back.controllers;
 
+import com.stripe.net.Webhook;
+import kassandrafalsitta.e_commerce_back.entities.CheckoutResponse;
 import kassandrafalsitta.e_commerce_back.entities.Order;
 import kassandrafalsitta.e_commerce_back.exceptions.BadRequestException;
 import kassandrafalsitta.e_commerce_back.payloads.OrderDTO;
 import kassandrafalsitta.e_commerce_back.payloads.OrderRespDTO;
+import kassandrafalsitta.e_commerce_back.payloads.SessionIdDTO;
+import kassandrafalsitta.e_commerce_back.payloads.SessionRespDTO;
 import kassandrafalsitta.e_commerce_back.services.OrdersService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
@@ -17,9 +23,18 @@ import org.springframework.web.bind.annotation.*;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+
+import com.stripe.model.Event;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RestController;
+
 @RestController
 @RequestMapping("/orders")
 public class OrdersController {
+    @Value("${secret.key.stripe}")
+    private String stripeApiKey;
     @Autowired
     private OrdersService ordersService;
 
@@ -39,10 +54,32 @@ public class OrdersController {
                     .map(DefaultMessageSourceResolvable::getDefaultMessage)
                     .collect(Collectors.joining(". "));
             throw new BadRequestException("Ci sono stati errori nel payload. " + messages);
+        }
+
+        CheckoutResponse checkoutResponse = ordersService.saveOrder(body);
+        return new OrderRespDTO(checkoutResponse.getOrder().getId(), checkoutResponse.getSessionId());
+    }
+
+    @PostMapping("/check-status")
+    public SessionRespDTO checkPaymentStatus( @RequestBody @Validated SessionIdDTO sessionId,BindingResult validationResult) {
+        if (validationResult.hasErrors()) {
+            String messages = validationResult.getAllErrors().stream()
+                    .map(DefaultMessageSourceResolvable::getDefaultMessage)
+                    .collect(Collectors.joining(". "));
+            throw new BadRequestException("Ci sono stati errori nel payload. " + messages);
+        }
+
+        boolean isSuccess = ordersService.checkIfPaymentSucceeded(sessionId);
+
+        if (isSuccess) {
+            ordersService.saveOrderOnDatabase(sessionId);
+            return new SessionRespDTO("Pagamento completato con successo.");
         } else {
-            return new OrderRespDTO(this.ordersService.saveOrder(body).getId());
+            return new SessionRespDTO("Il pagamento non è andato a buon fine.");
         }
     }
+
+
 
     @GetMapping("/{orderId}")
     @PreAuthorize("hasAuthority('ADMIN')")
@@ -62,4 +99,7 @@ public class OrdersController {
     public void findOrderByIdAndDelete(@PathVariable UUID orderId) {
         ordersService.findByIdAndDelete(orderId);
     }
+
+
+
 }

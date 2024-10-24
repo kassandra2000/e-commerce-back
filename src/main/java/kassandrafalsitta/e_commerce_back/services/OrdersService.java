@@ -11,6 +11,8 @@ import kassandrafalsitta.e_commerce_back.enums.Status;
 import kassandrafalsitta.e_commerce_back.exceptions.BadRequestException;
 import kassandrafalsitta.e_commerce_back.exceptions.NotFoundException;
 import kassandrafalsitta.e_commerce_back.payloads.OrderDTO;
+import kassandrafalsitta.e_commerce_back.payloads.OrderIdRespDTO;
+import kassandrafalsitta.e_commerce_back.payloads.SessionIdDTO;
 import kassandrafalsitta.e_commerce_back.repositories.OrderRepository;
 import kassandrafalsitta.e_commerce_back.repositories.ProductRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,7 +50,7 @@ public class OrdersService {
         return this.orderRepository.findAll(pageable);
     }
 
-    public Order saveOrder(OrderDTO body) {
+    public CheckoutResponse saveOrder(OrderDTO body) {
         LocalDate dateAdded;
         try {
             dateAdded = LocalDate.parse(body.dateAdded());
@@ -71,7 +73,7 @@ public class OrdersService {
         }
 
         User user = usersService.findById(userId);
-        user.getProductList().clear();
+
 
         List<UUID> productsId = new ArrayList<>();
         for (String id : body.productId()) {
@@ -87,16 +89,99 @@ public class OrdersService {
             throw new BadRequestException("Nessun prodotto trovato con gli ID forniti");
         }
 
-        products.forEach(product -> product.setQuantity(1));
+        Order order = new Order(dateAdded, status, user, products);
+        order.setTotal(Double.parseDouble(body.total()));
+
+        // Creazione della sessione di pagamento di Stripe
+        try {
+            SessionCreateParams.Builder builder = SessionCreateParams.builder()
+                    .setMode(SessionCreateParams.Mode.PAYMENT)
+                    .setSuccessUrl("http://localhost:5173/success?sessionId={CHECKOUT_SESSION_ID}")
+                    .setCancelUrl("http://localhost:5173/errore");
+            for (Product product : products) {
+                builder.addLineItem(
+                        SessionCreateParams.LineItem.builder()
+                                .setPriceData(
+                                        SessionCreateParams.LineItem.PriceData.builder()
+                                                .setCurrency("eur")
+                                                .setUnitAmount((long) (product.getPrice() * 100))
+                                                .setProductData(
+                                                        SessionCreateParams.LineItem.PriceData.ProductData.builder()
+                                                                .setName(product.getTitle())
+                                                                .build())
+                                                .build())
+                                .setQuantity((long) product.getQuantity())
+                                .build());
+            }
+
+            SessionCreateParams params = builder.build();
+            Session session = Session.create(params);
+            return new CheckoutResponse(session.getId(), order);
+        } catch (StripeException e) {
+
+            throw new BadRequestException("Errore durante la creazione della sessione di pagamento: " + e.getMessage());
+        }
+    }
+
+    public Order saveOrderOnDatabase(SessionIdDTO body) {
+        LocalDate dateAdded;
+        try {
+            dateAdded = LocalDate.parse(body.dateAdded());
+        } catch (DateTimeParseException e) {
+            throw new BadRequestException("Il formato della data non è valido: " + body.dateAdded() + " inserire nel seguente formato: AAAA-MM-GG");
+        }
+
+        UUID userId;
+        try {
+            userId = UUID.fromString(body.userId());
+        } catch (IllegalArgumentException e) {
+            throw new BadRequestException("L'UUID del dipendente non è corretto");
+        }
+
+        Status status;
+        try {
+            status = Status.valueOf(body.status().toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new BadRequestException("Lo stato non è corretto");
+        }
+
+        User user = usersService.findById(userId);
+
+
+        List<UUID> productsId = new ArrayList<>();
+        for (String id : body.productId()) {
+            try {
+                productsId.add(UUID.fromString(id));
+            } catch (IllegalArgumentException e) {
+                throw new BadRequestException("L'UUID del prodotto " + id + " non è corretto");
+            }
+        }
+
+        List<Product> products = productRepository.findAllById(productsId);
+        if (products.isEmpty()) {
+            throw new BadRequestException("Nessun prodotto trovato con gli ID forniti");
+        }
 
         Order order = new Order(dateAdded, status, user, products);
         order.setTotal(Double.parseDouble(body.total()));
         return this.orderRepository.save(order);
+    };
 
-
+    public boolean checkIfPaymentSucceeded(SessionIdDTO sessionId) {
+        try {
+            Session session = Session.retrieve(sessionId.sessionId());
+            if ("paid".equals(session.getPaymentStatus())) {
+                Optional<Order> order = orderRepository.findBySessionId(sessionId.sessionId());
+                if (order.isPresent()) {
+                    Order savedOrder = this.orderRepository.save(order.get());
+                }
+                return true;
+            }
+            return false;
+        } catch (StripeException e) {
+            throw new BadRequestException("Errore nel recupero dello stato del pagamento: " + e.getMessage());
+        }
     }
-
-
 
     public Order findById(UUID productId) {
         return this.orderRepository.findById(productId).orElseThrow(() -> new NotFoundException(productId));

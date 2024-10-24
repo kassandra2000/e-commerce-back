@@ -177,6 +177,13 @@ public class UsersService {
             throw new NotFoundException("Prodotto non trovato nel carrello dell'utente con ID: " + productId);
         }
     }
+
+    public void removeAllFromCart(UUID userId) {
+        User user = findById(userId);
+        user.getProductList().clear();
+        usersRepository.save(user);
+    }
+
 }
 
 

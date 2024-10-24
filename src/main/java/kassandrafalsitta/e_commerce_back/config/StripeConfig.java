@@ -9,11 +9,11 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class StripeConfig {
 
-    @Value("${secret.key.stripe}")  // Estrae il valore da env.properties o application.properties
+    @Value("${secret.key.stripe}")
     private String stripeApiKey;
 
     @PostConstruct
     public void init() {
-        Stripe.apiKey = stripeApiKey;  // Imposta la chiave API di Stripe
+        Stripe.apiKey = stripeApiKey;
     }
 }

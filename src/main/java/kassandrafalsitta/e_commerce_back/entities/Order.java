@@ -25,6 +25,8 @@ public class Order {
     private LocalDate dateModified;
     private double total;
 
+    private String sessionId;
+
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User user;

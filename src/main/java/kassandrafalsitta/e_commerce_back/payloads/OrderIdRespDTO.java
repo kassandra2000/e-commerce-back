@@ -4,9 +4,9 @@ import jakarta.validation.constraints.NotNull;
 
 import java.util.UUID;
 
-public record OrderRespDTO(
+public record OrderIdRespDTO(
         @NotNull(message = "L'UUID è obbligatorio")
-        UUID orderId,
-        String sessionId
+        UUID orderId
+
 ) {
 }
