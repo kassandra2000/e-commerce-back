@@ -28,10 +28,8 @@ import java.util.stream.Collectors;
 public class AuthController {
     @Autowired
     private UsersService UsersService;
-
     @Autowired
     private AuthService authService;
-
     @PostMapping("/login")
     public UserLoginRespDTO login(@RequestBody UserLoginDTO payload) {
             return new UserLoginRespDTO(this.authService.checkCredentialsAndGenerateToken(payload));
