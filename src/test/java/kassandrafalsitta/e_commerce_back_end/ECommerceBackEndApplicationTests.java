@@ -1,10 +1,10 @@
-package kassandrafalsitta.e_commerce_back;
+package kassandrafalsitta.e_commerce_back_end;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class ECommerceBackApplicationTests {
+class ECommerceBackEndApplicationTests {
 
 	@Test
 	void contextLoads() {
